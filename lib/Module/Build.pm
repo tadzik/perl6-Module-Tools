@@ -69,8 +69,10 @@ sub build(Str $dir = '.', Str $binary = 'perl6', :$v) is export {
     }
 
     for @order».&module-name-to-path -> $module {
-        my $command = "$binary --target=PIR --output={
-                       $module.subst(/\.pm6?/, ".pir")} $module";
+        my $pir = $module.subst(/\.pm6?/, ".pir");
+        next if ($pir.IO ~~ :f &&
+                $pir.IO.stat.modifytime > $module.IO.stat.modifytime);
+        my $command = "$binary --target=PIR --output=$pir $module";
         say $command if $v.defined;
         run $command and die "Failed building $module"
     }

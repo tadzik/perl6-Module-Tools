@@ -3,3 +3,4 @@ Docs and more fun on the way.
 
 TODO:
 M::Build -- compile only if .pir is older than .pm
+    update: semi-works (wth?)
