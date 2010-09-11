@@ -1,2 +1,5 @@
 For building and installing modules in pure Perl 6.
 Docs and more fun on the way.
+
+TODO:
+M::Build -- compile only if .pir is older than .pm
