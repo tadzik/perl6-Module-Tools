@@ -9,14 +9,20 @@ sub install(Str $dir = '.', Str $dest = "%*ENV<HOME>/.perl6/", :$v) is export {
     && "$dir/Makefile".IO ~~ :f {
         run 'make install' and die "'make install' failed";
     } else {
-        for find(dir => "$dir/lib", name => /[\.pm6?$] | [\.pir$]/).list -> $pmfile {
-            my $target-dir = $pmfile.dir.subst(/\.\//, $dest);
+        my @files = find(dir => "$dir/lib", name => /[\.pm6?$] | [\.pir$]/).list;
+        if "$dir/bin".IO ~~ :d {
+            for find(dir => "$dir/bin").list {
+                @files.push: $_
+            }
+        }
+        for @files -> $file {
+            my $target-dir = $file.dir.subst(/\.\//, $dest);
             mkdir $target-dir, :p;
-            say "Installing $pmfile" if $v.defined;
+            say "Installing $file" if $v.defined;
 #            say "Starting copying $pmfile, sized {
 #                $pmfile.Str.IO.stat.size} bytes";
 #            my $t = time;
-            cp ~$pmfile, "$target-dir/{$pmfile.name}";
+            cp ~$file, "$target-dir/{$file.name}";
 #            say "Done copying, took {time() - $t} seconds";
         }
     }
