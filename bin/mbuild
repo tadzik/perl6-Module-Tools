@@ -1,0 +1,24 @@
+#!/usr/bin/perl6
+
+use Module::Build;
+use Module::Test;
+use Module::Install;
+
+sub MAIN(Str $what?) {
+    given $what {
+        when 'test' {
+            test()
+        }
+        when 'install' {
+            install(:v)
+        }
+        when ! *.defined {
+            build(:v)
+        }
+        default {
+            note "unrecognized option: $what"
+        }
+    }
+}
+
+# vim: ft=perl6
