@@ -1,4 +1,4 @@
-use File::Copy;
+#use File::Copy;
 use File::Find;
 use File::Mkdir;
 
@@ -25,8 +25,9 @@ our sub install(Str $dir = '.', Str $dest = "%*ENV<HOME>/.perl6/", :$v) {
 #            say "Starting copying $pmfile, sized {
 #                $pmfile.Str.IO.stat.size} bytes";
 #            my $t = time;
-            cp ~$file, "$target-dir/{$file.name}";
+#            cp ~$file, "$target-dir/{$file.name}";
 #            say "Done copying, took {time() - $t} seconds";
+            run "cp $file $target-dir/{$file.name}";
         }
     }
 }
