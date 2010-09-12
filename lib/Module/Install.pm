@@ -4,10 +4,13 @@ use File::Mkdir;
 
 module Module::Install;
 
-sub install(Str $dir = '.', Str $dest = "%*ENV<HOME>/.perl6/", :$v) is export {
+our sub install(Str $dir = '.', Str $dest = "%*ENV<HOME>/.perl6/", :$v) {
     if $*VM<config><osname> ne 'MSWin32'
     && "$dir/Makefile".IO ~~ :f {
+        my $cwd = cwd;
+        chdir $dir;
         run 'make install' and die "'make install' failed";
+        chdir $cwd;
     } else {
         my @files = find(dir => "$dir/lib", name => /[\.pm6?$] | [\.pir$]/).list;
         if "$dir/bin".IO ~~ :d {

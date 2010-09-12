@@ -11,10 +11,19 @@ sub module-name-to-path($module-name) {
     $pm.IO ~~ :e ?? $pm !! $pm ~ '6';
 }
 
-sub build(Str $dir = '.', Str $binary = 'perl6', :$v) is export {
+our sub build(Str $dir = '.', Str $binary = 'perl6', :$v) {
+    if "$dir/Configure.pl".IO ~~ :f {
+        my $cwd = cwd;
+        chdir $dir;
+        run 'perl6 Configure.pl' and die "Configure.pl failed";
+        chdir $cwd;
+    }
     if $*VM<config><osname> ne 'MSWin32'
     && "$dir/Makefile".IO ~~ :f {
+        my $cwd = cwd;
+        chdir $dir;
         run 'make' and die "'make' failed";
+        chdir $cwd;
         return;
     }
 

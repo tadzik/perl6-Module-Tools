@@ -7,13 +7,13 @@ use Module::Install;
 sub MAIN(Str $what?) {
     given $what {
         when 'test' {
-            test()
+            Module::Test::test()
         }
         when 'install' {
-            install(:v)
+            Module::Install::install(:v)
         }
         when ! *.defined {
-            build(:v)
+            Module::Build::build(:v)
         }
         default {
             note "unrecognized option: $what"
