@@ -92,4 +92,23 @@ our sub build(Str $dir = '.', Str $binary = 'perl6', :$v) {
     }
 }
 
+=begin pod
+
+=head1 NAME
+
+Module::Build -- compile Perl 6 module files
+
+=head1 SYNOPSIS
+
+	use Module::Build;
+
+    Module::Build::build('lib/', '/opt/bin/perl6');
+    Module::Build::build :v;
+
+=head1 DESCRIPTION
+
+TODO
+
+=end pod
+
 # vim: ft=perl6
