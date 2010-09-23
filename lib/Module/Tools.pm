@@ -1,4 +1,4 @@
-module Module::Tools<github:tadzik>;
+module Module::Tools:<github:tadzik>;
 
 =begin pod
 
