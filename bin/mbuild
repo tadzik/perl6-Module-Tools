@@ -7,7 +7,7 @@ use Module::Install;
 sub MAIN(Str $what?) {
     given $what {
         when 'test' {
-            Module::Test::test()
+            Module::Test::test(:v)
         }
         when 'install' {
             Module::Install::install(:v)
