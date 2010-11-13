@@ -2,15 +2,6 @@ use File::Find;
 
 module Module::Build;
 
-sub path-to-module-name($path) {
-    $path.subst(/^'lib/'/, '').subst(/\.pm6?$/, '').subst('/', '::', :g)
-}
-
-sub module-name-to-path($module-name) {
-    my $pm = 'lib/' ~ $module-name.subst('::', '/', :g) ~ '.pm';
-    $pm.IO ~~ :e ?? $pm !! $pm ~ '6';
-}
-
 our sub build(Str $dir = '.', Str $binary = 'perl6', :$v) {
     if "$dir/Configure.pl".IO ~~ :f {
         my $cwd = cwd;
@@ -32,6 +23,13 @@ our sub build(Str $dir = '.', Str $binary = 'perl6', :$v) {
     }
 
     my @module-files = find(dir => "$dir/lib", name => /\.pm6?$/).list;
+    my %path-to-name;
+    for @module-files -> $m {
+        my $n = $m.subst(/^.*lib\//, '').subst(/\.pm6?$/, '').subst('/', '::', :g);
+        %path-to-name{$m} = $n;
+    }
+    my %name-to-path = %path-to-name.invert;
+
 
     # To know the best order of compilation, we build a dependency
     # graph of all the modules in lib/. %usages_of ends up containing
@@ -39,9 +37,7 @@ our sub build(Str $dir = '.', Str $binary = 'perl6', :$v) {
     # and the values (containing arrays of names) denoting directed
     # edges.
 
-    my @modules = map {
-            path-to-module-name($_.Str.subst(/\.\/lib\//, ''))
-        }, @module-files;
+    my @modules = @module-files.map: { %path-to-name{$_} };
     my %usages_of;
     for @module-files -> $module-file {
         my $fh = open($module-file, :r);
@@ -81,10 +77,10 @@ our sub build(Str $dir = '.', Str $binary = 'perl6', :$v) {
         push @order, $module;
     }
 
-    for @order».&module-name-to-path -> $module {
+    for @order.map({ %name-to-path{$_} }) -> $module {
         my $pir = $module.subst(/\.pm6?/, ".pir");
         next if ($pir.IO ~~ :f &&
-                $pir.IO.stat.modifytime > $module.IO.stat.modifytime);
+                $pir.IO.changed > $module.IO.changed);
         my $command = "PERL6LIB=$dir/lib $binary --target=PIR "
                       ~ "--output=$pir $module";
         say $command if $v.defined;
