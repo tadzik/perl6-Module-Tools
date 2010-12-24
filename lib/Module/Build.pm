@@ -2,7 +2,16 @@ use File::Find;
 
 module Module::Build;
 
-our sub build(Str $dir = '.', Str $binary = 'perl6', :$v) {
+sub path-to-module-name($path) {
+    $path.subst(/^.*'lib/'/, '').subst(/\.pm6?$/, '').subst('/', '::', :g)
+}
+
+sub module_name_to_path($base, $module-name) {
+    my $pm = "$base/lib/" ~ $module-name.subst('::', '/', :g) ~ '.pm';
+    $pm.IO ~~ :e ?? $pm !! $pm ~ '6';
+}
+
+our sub build(Str :$dir = '.', Str :$binary = 'perl6', Bool :$v) {
     if "$dir/Configure.pl".IO ~~ :f {
         my $cwd = cwd;
         chdir $dir;
@@ -23,13 +32,6 @@ our sub build(Str $dir = '.', Str $binary = 'perl6', :$v) {
     }
 
     my @module-files = find(dir => "$dir/lib", name => /\.pm6?$/).list;
-    my %path-to-name;
-    for @module-files -> $m {
-        my $n = $m.subst(/^.*lib\//, '').subst(/\.pm6?$/, '').subst('/', '::', :g);
-        %path-to-name{$m} = $n;
-    }
-    my %name-to-path = %path-to-name.invert;
-
 
     # To know the best order of compilation, we build a dependency
     # graph of all the modules in lib/. %usages_of ends up containing
@@ -37,7 +39,9 @@ our sub build(Str $dir = '.', Str $binary = 'perl6', :$v) {
     # and the values (containing arrays of names) denoting directed
     # edges.
 
-    my @modules = @module-files.map: { %path-to-name{$_} };
+    my @modules = map {
+            path-to-module-name($_.Str.subst(/\.\/lib\//, ''))
+        }, @module-files;
     my %usages_of;
     for @module-files -> $module-file {
         my $fh = open($module-file, :r);
@@ -77,34 +81,15 @@ our sub build(Str $dir = '.', Str $binary = 'perl6', :$v) {
         push @order, $module;
     }
 
-    for @order.map({ %name-to-path{$_} }) -> $module {
+    my @opath = @order.map: { module_name_to_path($dir, $_) };
+    for @opath -> $module {
         my $pir = $module.subst(/\.pm6?/, ".pir");
         next if ($pir.IO ~~ :f &&
-                $pir.IO.changed > $module.IO.changed);
-        my $command = "PERL6LIB=$dir/lib $binary --target=PIR "
-                      ~ "--output=$pir $module";
-        say $command if $v.defined;
+                $pir.IO.stat.modifytime > $module.IO.stat.modifytime);
+        my $command = "PERL6LIB=$dir/lib $binary --target=PIR --output=$pir $module";
+        say $command if $v;
         run $command and die "Failed building $module"
     }
 }
-
-=begin pod
-
-=head1 NAME
-
-Module::Build -- compile Perl 6 module files
-
-=head1 SYNOPSIS
-
-	use Module::Build;
-
-    Module::Build::build('lib/', '/opt/bin/perl6');
-    Module::Build::build :v;
-
-=head1 DESCRIPTION
-
-TODO
-
-=end pod
 
 # vim: ft=perl6
