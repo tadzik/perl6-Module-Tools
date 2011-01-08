@@ -8,7 +8,7 @@ our sub test(Str :$dir = '.', Str :$binary = 'perl6', :$v) {
         run 'make test' and die "'make test' failed";
         chdir $cwd;
     }
-    if "$dir/t".IO ~~ :d {
+    elsif "$dir/t".IO ~~ :d {
         my $x = $v ?? '-v' !! '-Q';
         my $cwd = cwd;
         chdir $dir;
