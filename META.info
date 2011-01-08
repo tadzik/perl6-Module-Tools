@@ -1,0 +1,8 @@
+{
+    "name"        : "Module::Tools",
+    "version"     : "*",
+    "description" : "Various modules for module mangling",
+    "depends"     : [],
+    "repo-type"   : "git",
+    "repo-url"    : "git://github.com/tadzik/perl6-Module-Tools.git"
+}
